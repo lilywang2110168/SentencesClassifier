@@ -15,11 +15,11 @@ sentencesPlot = []
 sentencesQuote = []
 
 # importing files
-with open("data/movie-reviews/plot.tok.gt9.5000") as f:
+with open("plot.tok.gt9.5000") as f:
     for line in f:
         sentencesPlot.append(line)
 
-with codecs.open("data/movie-reviews/quote.tok.gt9.5000", "r", encoding="utf-8", errors='ignore') as f2:
+with codecs.open("quote.tok.gt9.5000", "r", encoding="utf-8", errors='ignore') as f2:
     for line in f2:
         sentencesQuote.append(line)
 
