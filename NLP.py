@@ -61,8 +61,8 @@ tokens = tokensPlot + tokensQuote
 for i in range(len(tokens)): 
     for j in range(len(tokens[i])):
         tmp=wordnet_lemmatizer.lemmatize(tokens[i][j], pos='v')
-        temp=tmp.encode('ascii', 'ignore')
-        tmp=temp.lower()
+        tmp=tmp.encode('ascii', 'ignore')
+        tmp=tmp.lower()
         tokens[i][j]=tmp
 
 
