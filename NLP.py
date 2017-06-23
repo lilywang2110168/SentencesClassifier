@@ -8,35 +8,73 @@ from sklearn.metrics import (confusion_matrix, accuracy_score, precision_score, 
 from scipy import sparse
 import numpy as np
 import itertools
+import os, glob
 
 wordnet_lemmatizer = WordNetLemmatizer()
 
 sentencesPlot = []
 sentencesQuote = []
-
+'''
 # importing files
-with open("plot.tok.gt9.5000") as f:
-    for line in f:
+#with open("plot.tok.gt9.5000") as f:
+    #for line in f:
         sentencesPlot.append(line)
 
 with codecs.open("quote.tok.gt9.5000", "r", encoding="utf-8", errors='ignore') as f2:
     for line in f2:
         sentencesQuote.append(line)
 
+
+
+sentencesQuote = []
+'''
+
+os.chdir("topics")
+for file in glob.glob("*.data"):
+    with codecs.open(file, "r", encoding="utf-8", errors='ignore') as f2:
+        for line in f2:
+            sentencesQuote.append(line)
+
+#print sentencesQuote
+#print len(sentencesQuote)
+
+
+os.chdir("..")
+with codecs.open('Wikipedia.txt', "r",encoding="utf-8", errors='ignore') as f1:
+    data=f1.read().replace('\n', '')
+
+sentencesPlot = nltk.sent_tokenize(data)
+
+print len(sentencesPlot)
+
+
 # tokenizing
 tokensPlot = [nltk.word_tokenize(sent) for sent in sentencesPlot]
+#print tokensPlot
 tokensQuote = [nltk.word_tokenize(sent) for sent in sentencesQuote]
+#print tokensQuote
 tokens = tokensPlot + tokensQuote
+
+
+
+#preprocessing
+for i in range(len(tokens)): 
+    for j in range(len(tokens[i])):
+        tmp=wordnet_lemmatizer.lemmatize(tokens[i][j], pos='v')
+        temp=tmp.encode('ascii', 'ignore')
+        tmp=temp.lower()
+        tokens[i][j]=tmp
+
 
 # constructing the dictionary
 dictionary = {}
 c = itertools.count()
 for sent in tokens:
     for word in sent:
-        lem = wordnet_lemmatizer.lemmatize(word, pos='v')
-        lem = str(lem)
-        if lem not in dictionary:
-            dictionary[lem] = next(c)
+        if word not in dictionary:
+            dictionary[word] = next(c)
+
+print dictionary
 
 # constructing the matrices
 X = sparse.dok_matrix( (len(tokens),len(dictionary)) , dtype=np.int8 )
@@ -44,18 +82,15 @@ Y = np.zeros(len(tokens), dtype=np.int8)
 
 for i, sent in enumerate(tokensPlot):
     for word in sent:
-        lem = wordnet_lemmatizer.lemmatize(word, pos='v')
-        lem = str(lem)
-        index = dictionary[lem]
+        index = dictionary[word]
         X[i,index] = 1
     Y[i] = 1
 
 for i, sent in enumerate(tokensQuote, start=len(tokensPlot)):
     for word in sent:
-        lem = wordnet_lemmatizer.lemmatize(word, pos='v')
-        lem = str(lem)
-        index = dictionary[lem]
+        index = dictionary[word]
         X[i,index] = 1
+
 
 # xtrain, xtest, ytrain, ytest = train_test_split(X, Y, test_size=0.20, random_state=42)
 
@@ -89,6 +124,8 @@ for train,test in skf.split(X,Y):
     recalls.append( recall_score(ytest, ypredict) )
     f1s.append( f1_score(ytest, ypredict) )
 
+
+
 print '5-fold cross-validation'
 print 'sum of confusion matrices'
 print sum(confusion_matrices)
@@ -100,3 +137,6 @@ print 'average recall'
 print np.mean(recalls)
 print 'average f1'
 print np.mean(f1s)
+
+
+
