@@ -5,10 +5,17 @@ from sklearn import svm
 from sklearn import naive_bayes
 from sklearn.model_selection import (train_test_split, StratifiedKFold)
 from sklearn.metrics import (confusion_matrix, accuracy_score, precision_score, recall_score, f1_score)
+from sklearn.externals import joblib
 from scipy import sparse
 import numpy as np
 import itertools
-import os, glob
+import os
+import glob
+from argparse import ArgumentParser
+
+parser = ArgumentParser()
+parser.add_argument('--save-file', dest='save_file')
+args = parser.parse_args()
 
 wordnet_lemmatizer = WordNetLemmatizer()
 
@@ -144,6 +151,13 @@ print 'average recall'
 print np.mean(recalls)
 print 'average f1'
 print np.mean(f1s)
+
+if args.save_file:
+    final_classifier = naive_bayes.BernoulliNB()
+    final_classifier.fit(X,Y)
+    with open(args.save_file, 'w+') as f:
+        joblib.dump(final_classifier, f)
+    print 'Saved trained classifier at {}'.format(os.path.abspath(args.save_file))
 
 
 sentences=[]
