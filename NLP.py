@@ -14,20 +14,20 @@ wordnet_lemmatizer = WordNetLemmatizer()
 
 sentencesPlot = []
 sentencesQuote = []
-'''
-# importing files
-#with open("plot.tok.gt9.5000") as f:
-    #for line in f:
-        sentencesPlot.append(line)
 
+# importing files
+with open("plot.tok.gt9.5000") as f:
+    for line in f:
+        sentencesPlot.append(line)
+'''
 with codecs.open("quote.tok.gt9.5000", "r", encoding="utf-8", errors='ignore') as f2:
     for line in f2:
         sentencesQuote.append(line)
 
 
-
-sentencesQuote = []
 '''
+sentencesQuote = []
+
 
 os.chdir("topics")
 for file in glob.glob("*.data"):
@@ -35,9 +35,11 @@ for file in glob.glob("*.data"):
         for line in f2:
             sentencesQuote.append(line)
 
+os.chdir("..")
+
 #print sentencesQuote
 #print len(sentencesQuote)
-
+'''
 
 os.chdir("..")
 with codecs.open('Wikipedia.txt', "r",encoding="utf-8", errors='ignore') as f1:
@@ -46,6 +48,7 @@ with codecs.open('Wikipedia.txt', "r",encoding="utf-8", errors='ignore') as f1:
 sentencesPlot = nltk.sent_tokenize(data)
 
 print len(sentencesPlot)
+'''
 
 
 # tokenizing
@@ -63,6 +66,10 @@ for i in range(len(tokens)):
         tmp=wordnet_lemmatizer.lemmatize(tokens[i][j], pos='v')
         tmp=tmp.encode('ascii', 'ignore')
         tmp=tmp.lower()
+        
+        if tmp.isdigit():
+            tmp='0'
+
         tokens[i][j]=tmp
 
 
@@ -74,7 +81,7 @@ for sent in tokens:
         if word not in dictionary:
             dictionary[word] = next(c)
 
-print dictionary
+#print dictionary
 
 # constructing the matrices
 X = sparse.dok_matrix( (len(tokens),len(dictionary)) , dtype=np.int8 )
@@ -122,7 +129,7 @@ for train,test in skf.split(X,Y):
     accuracies.append( accuracy_score(ytest, ypredict) )
     precisions.append( precision_score(ytest,ypredict) )
     recalls.append( recall_score(ytest, ypredict) )
-    f1s.append( f1_score(ytest, ypredict) )
+    f1s.append( f1_score(ytest, ypredict))
 
 
 
@@ -137,6 +144,94 @@ print 'average recall'
 print np.mean(recalls)
 print 'average f1'
 print np.mean(f1s)
+
+
+sentences=[]
+
+
+
+#Using the trained model to classify reviews (by sentence)
+
+
+#importing the file
+with codecs.open('LaptopReviews.txt', "r",encoding="utf-8", errors='ignore') as f1:
+     for line in f1:
+        sents=nltk.sent_tokenize(line)
+        for sent in sents:
+            sentences.append(sent)
+
+#tokenizing
+tokensReview = [nltk.word_tokenize(sent) for sent in sentences]
+
+
+#preoprocessing
+for i in range(len(tokensReview)): 
+    for j in range(len(tokensReview[i])):
+        tmp=wordnet_lemmatizer.lemmatize(tokensReview[i][j], pos='v')
+        tmp=tmp.encode('ascii', 'ignore')
+        tmp=tmp.lower()
+        tokensReview[i][j]=tmp
+
+
+#contructing the matrix
+X = sparse.dok_matrix( (len(tokensReview),len(dictionary)) , dtype=np.int8 )
+for i, sent in enumerate(tokensReview):
+    for word in sent:
+        if word in dictionary: 
+            index = dictionary[word]
+            X[i,index] = 1
+
+
+
+
+#predicting and writing results to files
+fileObj = open('ObjReviews2.txt','w')
+fileSub= open('SubReviews2.txt','w')
+
+
+ypredict = clf.predict(X)
+
+for i in range(len(ypredict)): 
+    if ypredict[i]==0:
+        fileObj.write(sentences[i]+'\n')
+    else:
+        fileSub.write(sentences[i]+'\n')
+
+
+print "Done!"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
