@@ -12,9 +12,10 @@ import itertools
 import os
 import glob
 from argparse import ArgumentParser
+import cPickle
 
 parser = ArgumentParser()
-parser.add_argument('--save-file', dest='save_file')
+parser.add_argument('--save-folder', dest='save_folder')
 args = parser.parse_args()
 
 wordnet_lemmatizer = WordNetLemmatizer()
@@ -152,12 +153,15 @@ print np.mean(recalls)
 print 'average f1'
 print np.mean(f1s)
 
-if args.save_file:
+if args.save_folder:
+    save_folder = os.path.abspath(args.save_folder)
     final_classifier = naive_bayes.BernoulliNB()
     final_classifier.fit(X,Y)
-    with open(args.save_file, 'w+') as f:
+    with open(save_folder + '/classifier', 'w+') as f:
         joblib.dump(final_classifier, f)
-    print 'Saved trained classifier at {}'.format(os.path.abspath(args.save_file))
+    with open(save_folder + '/dictionary', 'w+') as f:
+        cPickle.dump(dictionary, f)
+    print 'Saved trained classifier at {}'.format(os.path.abspath(args.save_folder))
 
 
 sentences=[]
